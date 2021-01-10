@@ -78,7 +78,8 @@ class VerifySerializer(serializers.ModelSerializer):
 
         if verify and verify.code == thisCode and verify.type == thisType:
             Account.objects.filter(phone=thisPhone).update(isVerified=True)
-            verify.delete()
+            if verify.type == 'register':
+                verify.delete()
             return True
         else:
             return False

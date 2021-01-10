@@ -20,4 +20,5 @@ class Verify(models.Model) :
     phone = models.CharField(unique=True, max_length=11)
     type = models.CharField(max_length=10)
     code = models.CharField(max_length=5, default=None)
+    status = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now=True)
