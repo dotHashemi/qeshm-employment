@@ -21,6 +21,7 @@ INSTALLED_APPS = [
 
     # Local Apps
     'accounts.apps.AccountsConfig',
+    'cities.apps.CitiesConfig',
 ]
 
 REST_FRAMEWORK = {
