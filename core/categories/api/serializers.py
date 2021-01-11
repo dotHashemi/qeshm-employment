@@ -8,7 +8,7 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         
-        fields = ['title', 'status', 'created']
+        fields = ['id', 'title', 'status', 'created']
 
         extra_kwargs = {
             'status': {'write_only': True}
