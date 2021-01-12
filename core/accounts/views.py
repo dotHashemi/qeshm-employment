@@ -1,3 +1,5 @@
+from django.contrib.auth.models import User
+from accounts.models import Verify
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -20,12 +22,43 @@ class Registration(APIView):
 
 class ResetPassword(APIView):
     def post(request):
-        pass
+        thisPhone = request.data['phone']
+        thisPassword = request.data['password']
+        thisConfirm = request.data['confirm']
+
+        verify = Verify.objects.filter(phone=thisPhone).first()
+
+        if verify and verify.status and thisPassword == thisConfirm:
+            user = User.objects.filter(account__phone=thisPhone)
+            user.set_password(thisPassword)
+            user.save()
+            return Response({
+                'message': 'password was changed.'
+            }, status=200)
+        else:
+            return Response({
+                'errors': 'request is not valid.'
+            }, status=400)
 
 
 class ChangePassword(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(request):
-        pass
+        thisPassword = request.data['password']
+        thisConfirm = request.data['confirm']
+
+        if thisPassword == thisConfirm:
+            user = request.user
+            user.set_password(thisPassword)
+            user.save()
+            return Response({
+                'message': 'password was changed.'
+            }, status=200)
+        else:
+            return Response({
+                'errors': 'request is not valid.'
+            }, status=400)
 
 
 class VerifyCode(APIView):
