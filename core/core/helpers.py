@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework.response import Response
 
 
@@ -18,3 +19,10 @@ class Success():
         return Response({
             "detail": message
         }, status=status)
+
+
+class Compare():
+    def verifyTime(created, minutes=5):
+        if (created + timezone.timedelta(minutes=minutes)) >= timezone.now():
+            return True
+        return False

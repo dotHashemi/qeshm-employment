@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
 
-from .views import Registration, ResetPassword, Logout, VerifyCode
+from .views import Registration, ResetPassword, Logout, VerifySendAPIView, VerifyCheckAPIView
 
 
 urlpatterns = [
@@ -13,5 +13,6 @@ urlpatterns = [
 
     path('password/reset', Registration.post, name="auth.registration"),
 
-    path('verify/<str:type>', VerifyCode.as_view(), name="auth.registration"),
+    path('verify/check/<str:type>', VerifyCheckAPIView.as_view()),
+    path('verify/send/<str:type>', VerifySendAPIView.as_view()),
 ]

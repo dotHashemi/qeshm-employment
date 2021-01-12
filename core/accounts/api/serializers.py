@@ -1,4 +1,5 @@
-from enum import unique
+from core.helpers import Compare, Error
+from django.utils import timezone
 import random
 
 from django.core.validators import MaxLengthValidator, RegexValidator
@@ -6,12 +7,13 @@ from accounts.models import Account, Verify
 from rest_framework import fields, serializers
 from django.contrib.auth.models import User
 from rest_framework.validators import UniqueValidator
+from core.exceptions import DoesNotMatch, DoesNotVerify
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
-    # this field will use to store phone
     username = serializers.CharField(validators=[
-        RegexValidator(regex=r"^(09)[0-9]{9}$", message="phone is not valid.")
+        RegexValidator(regex=r"^(09)[0-9]{9}$", message="phone is not valid."),
+        UniqueValidator(queryset=User.objects.all())
     ])
     email = serializers.EmailField(validators=[
         UniqueValidator(queryset=User.objects.all())
@@ -24,48 +26,66 @@ class RegistrationSerializer(serializers.ModelSerializer):
         fields = ['username', 'email', 'password', 'confirm']
 
     def create(self):
-        thisPassword = self.validated_data.get('password')
-        thisConfirm = self.validated_data.get('confirm')
-        thisEmail = self.validated_data.get('email')
-        thisUsername = self.validated_data.get('username')
-        thisType = "employer"
+        """ ...........................
+            create new user and account
+            ...........................
+        """
+        username = self.validated_data.get('username')
+        email = self.validated_data.get('email')
+        password = self.validated_data.get('password')
+        confirm = self.validated_data.get('confirm')
+        type = "employer"
 
-        if thisPassword != thisConfirm:
+        try:
+            verify = Verify.objects.get(phone=username)
+
+            if not verify.isVerified and not Compare.verifyTime(verify.created, 60):
+                raise DoesNotVerify
+
+            if password != confirm:
+                raise DoesNotMatch
+
+            user = User(email=email, username=username)
+            user.set_password(password)
+            user.save()
+
+            Account.objects.create(user=user, type=type)
+
+            return user
+        except Verify.DoesNotExist:
             raise serializers.ValidationError(
-                {'password': 'passwords must match.'})
-
-        user = User(email=thisEmail, username=thisUsername)
-        user.set_password(thisPassword)
-        user.save()
-
-        Account.objects.create(user=user, type=thisType)
-
-        code = random.randint(10000, 99999)
-        Verify.objects.create(phone=thisUsername, type="register", code=code)
-
-        return {
-            "phone": thisUsername,
-            "code": code
-        }
+                {'phone': 'phone does not exists.'}
+            )
+        except DoesNotVerify:
+            raise serializers.ValidationError(
+                {'phone': 'phone does not verified.'}
+            )
+        except DoesNotMatch:
+            raise serializers.ValidationError(
+                {'password': 'passwords must match.'}
+            )
 
 
 class VerifySerializer(serializers.ModelSerializer):
-    phone = serializers.CharField(max_length=11, min_length=11)
+    phone = serializers.CharField(validators=[
+        RegexValidator(regex=r"^(09)[0-9]{9}$", message="phone is not valid.")
+    ])
 
     class Meta:
         model = Verify
         fields = ['type', 'phone', 'code']
+        extra_kwargs = {
+            "type": {"write_only": True}
+        }
 
-    def check(self):
-        thisPhone = self.validated_data['phone']
-        thisCode = self.validated_data['code']
-        thisType = self.validated_data['type']
-        verify = Verify.objects.filter(phone=thisPhone).first()
+    def verified(self):
+        phone = self.validated_data.get('phone')
+        code = self.validated_data.get('code')
+        type = self.validated_data.get('type')
 
-        if verify and verify.code == thisCode and verify.type == thisType:
-            Account.objects.filter(phone=thisPhone).update(isVerified=True)
-            if verify.type == 'register':
-                verify.delete()
-            return True
-        else:
-            return False
+        verify = Verify.objects.filter(phone=phone).first()
+
+        if verify and verify.code == code and verify.type == type and Compare.verifyTime(verify.created):
+            verify.isVerified = True
+
+        return verify
