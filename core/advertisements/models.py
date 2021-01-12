@@ -15,11 +15,15 @@ class Advertisement(models.Model):
     isFullTime = models.BooleanField(default=False)
     isRemote = models.BooleanField(default=False)
     isInternship = models.BooleanField(default=False)
+    isMilitary = models.BooleanField(default=False)
     salary = models.PositiveIntegerField(default=None, null=True, blank=True)
     isActive = models.BooleanField(default=True)
     isVerified = models.BooleanField(default=False)
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-id']
 
     def __str__(self):
         return self.title

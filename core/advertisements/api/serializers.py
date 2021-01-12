@@ -23,12 +23,9 @@ class AdvertisementListSerializer(serializers.ModelSerializer):
             'isFullTime',
             'isRemote',
             'isInternship',
+            'isMilitary',
             'salary',
         ]
-
-        extra_kwargs = {
-            'status': {'write_only': True},
-        }
 
 
 class AdvertisementDetailSerializer(serializers.ModelSerializer):
@@ -40,7 +37,6 @@ class AdvertisementDetailSerializer(serializers.ModelSerializer):
 
         fields = [
             'id',
-            'user',
             'city',
             'category',
             'title',
@@ -49,22 +45,63 @@ class AdvertisementDetailSerializer(serializers.ModelSerializer):
             'isFullTime',
             'isRemote',
             'isInternship',
+            'isMilitary',
             'salary',
-            'status',
         ]
 
-        extra_kwargs = {
-            'status': {'write_only': True},
-            'user': {'write_only': True},
-        }
+    # def validate(self, attrs):
+    #     city = attrs.get("city", None)
+    #     if city is None or not City.objects.filter(id=city).exists():
+    #         raise serializers.ValidationError("city is not valid.")
 
-    def validate(self, attrs):
-        city = attrs.get("city", None)
-        if city is None or not City.objects.filter(id=city).exists():
-            raise serializers.ValidationError("city is not valid.")
+    #     category = attrs.get("category", None)
+    #     if category is None or not Category.objects.filter(id=category).exists():
+    #         raise serializers.ValidationError("category is not valid.")
 
-        category = attrs.get("category", None)
-        if category is None or not Category.objects.filter(id=category).exists():
-            raise serializers.ValidationError("category is not valid.")
+    #     return attrs
 
-        return attrs
+
+class AdvertisementCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Advertisement
+
+        fields = [
+            'city',
+            'category',
+            'title',
+            'company',
+            'description',
+            'isFullTime',
+            'isRemote',
+            'isInternship',
+            'isMilitary',
+            'salary',
+        ]
+
+    def create(self, user):
+        city = self.validated_data.get("city")
+        category = self.validated_data.get("category")
+        title = self.validated_data.get("title")
+        company = self.validated_data.get("company")
+        description = self.validated_data.get("description")
+        isFullTime = self.validated_data.get("isFullTime")
+        isRemote = self.validated_data.get("isRemote")
+        isInternship = self.validated_data.get("isInternship")
+        isMilitary = self.validated_data.get("isMilitary")
+        salary = self.validated_data.get("salary")
+
+        ad = Advertisement.objects.create(
+            user=user,
+            city=city,
+            category=category,
+            title=title,
+            company=company,
+            description=description,
+            isFullTime=isFullTime,
+            isRemote=isRemote,
+            isInternship=isInternship,
+            isMilitary=isMilitary,
+            salary=salary
+        )
+
+        return ad
