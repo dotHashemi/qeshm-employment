@@ -121,6 +121,10 @@ class VerifySerializer(serializers.ModelSerializer):
         raise serializers.ValidationError({"type": "type is not valid."})
 
     def verified(self):
+        """ .................................................................
+            check the code when if it's true then assign as a verified number
+            .................................................................
+        """
         phone = self.validated_data.get('phone')
         code = self.validated_data.get('code')
         type = self.validated_data.get('type')

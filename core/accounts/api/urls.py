@@ -1,15 +1,15 @@
 from django.urls import path
 from rest_framework.authtoken.views import obtain_auth_token
 
-from .views import Registration, ResetPassword, Logout, VerifySendAPIView, VerifyCheckAPIView
+from .views import Registration, ResetPassword, LogoutAPIView, VerifySendAPIView, VerifyCheckAPIView
 
 
 urlpatterns = [
-    path('login/', obtain_auth_token, name='auth.login'),
+    path('login/', obtain_auth_token),
 
-    path('logout/', Logout.as_view(), name='auth.logout'),
+    path('logout/', LogoutAPIView.as_view()),
 
-    path('registration/', Registration.as_view(), name="auth.registration"),
+    path('registration/', Registration.as_view()),
 
     path('password/reset/', ResetPassword.as_view()),
 

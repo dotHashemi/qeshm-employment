@@ -111,7 +111,7 @@ class VerifyCheckAPIView(APIView):
             return Error.throw("please do again.", 400)
 
 
-class Logout(APIView):
+class LogoutAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
