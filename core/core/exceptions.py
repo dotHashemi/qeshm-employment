@@ -10,11 +10,11 @@ class DoesNotMatch(Exception):
     pass
 
 
-class Exist(Exception):
+class ModelExist(Exception):
     pass
 
 
-class DoesNotValid(Exception):
+class InputDoesNotValid(Exception):
     pass
 
 

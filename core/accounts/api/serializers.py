@@ -12,12 +12,11 @@ from core.exceptions import DoesNotMatch, DoesNotVerify
 
 class RegistrationSerializer(serializers.ModelSerializer):
     username = serializers.CharField(validators=[
-        RegexValidator(regex=r"^(09)[0-9]{9}$", message="phone is not valid."),
-        UniqueValidator(queryset=User.objects.all())
+        RegexValidator(regex=r"^(09)[0-9]{9}$", message="phone is not valid.")
     ])
     email = serializers.EmailField(validators=[
         UniqueValidator(queryset=User.objects.all())
-    ])
+    ], required=False)
     password = serializers.CharField(write_only=True)
     confirm = serializers.CharField(write_only=True)
 
@@ -39,7 +38,7 @@ class RegistrationSerializer(serializers.ModelSerializer):
         try:
             verify = Verify.objects.get(phone=username)
 
-            if not verify.isVerified and not Compare.verifyTime(verify.created, 60):
+            if not verify.isVerified or verify.type != "register" or not Compare.verifyTime(verify.created, 30):
                 raise DoesNotVerify
 
             if password != confirm:
@@ -48,10 +47,11 @@ class RegistrationSerializer(serializers.ModelSerializer):
             user = User(email=email, username=username)
             user.set_password(password)
             user.save()
-
             Account.objects.create(user=user, type=type)
+            verify.delete()
 
             return user
+
         except Verify.DoesNotExist:
             raise serializers.ValidationError(
                 {'phone': 'phone does not exists.'}
@@ -60,6 +60,46 @@ class RegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'phone': 'phone does not verified.'}
             )
+        except DoesNotMatch:
+            raise serializers.ValidationError(
+                {'password': 'passwords must match.'}
+            )
+
+    def changePassword(self):
+        """ ..........................
+            change the user's password
+            ..........................
+        """
+        phone = self.validated_data.get("username")
+        password = self.validated_data.get("password")
+        confirm = self.validated_data.get("confirm")
+
+        try:
+            verify = Verify.objects.get(phone=phone)
+
+            if not verify.isVerified or verify.type != "resetpass" or not Compare.verifyTime(verify.created, 30):
+                raise DoesNotVerify
+
+            if password != confirm:
+                raise DoesNotMatch
+
+            user = User.objects.get(username=phone)
+            user.set_password(password)
+            user.save()
+            verify.delete()
+
+            return user
+
+        except User.DoesNotExist:
+            raise serializers.ValidationError(
+                {'user': 'user does not exists.'}
+            )
+
+        except Verify.DoesNotExist or DoesNotVerify:
+            raise serializers.ValidationError(
+                {'phone': 'phone does not verified.'}
+            )
+
         except DoesNotMatch:
             raise serializers.ValidationError(
                 {'password': 'passwords must match.'}
@@ -74,9 +114,11 @@ class VerifySerializer(serializers.ModelSerializer):
     class Meta:
         model = Verify
         fields = ['type', 'phone', 'code']
-        extra_kwargs = {
-            "type": {"write_only": True}
-        }
+
+    def validate_type(self, value):
+        if value == "register" or value == "resetpass":
+            return value
+        raise serializers.ValidationError({"type": "type is not valid."})
 
     def verified(self):
         phone = self.validated_data.get('phone')
@@ -87,5 +129,6 @@ class VerifySerializer(serializers.ModelSerializer):
 
         if verify and verify.code == code and verify.type == type and Compare.verifyTime(verify.created):
             verify.isVerified = True
+            verify.save()
 
         return verify

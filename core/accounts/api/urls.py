@@ -11,7 +11,7 @@ urlpatterns = [
 
     path('registration/', Registration.as_view(), name="auth.registration"),
 
-    path('password/reset', Registration.post, name="auth.registration"),
+    path('password/reset/', ResetPassword.as_view()),
 
     path('verify/check/<str:type>', VerifyCheckAPIView.as_view()),
     path('verify/send/<str:type>', VerifySendAPIView.as_view()),
