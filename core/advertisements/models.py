@@ -6,24 +6,37 @@ from categories.models import Category
 
 
 class Advertisement(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    city = models.ForeignKey(City, on_delete=models.PROTECT)
-    category = models.ForeignKey(Category, on_delete=models.PROTECT)
-    title = models.CharField(max_length=100)
-    company = models.CharField(max_length=100)
-    description = models.TextField()
-    isFullTime = models.BooleanField(default=False)
-    isRemote = models.BooleanField(default=False)
-    isInternship = models.BooleanField(default=False)
-    isMilitary = models.BooleanField(default=False)
-    salary = models.PositiveIntegerField(default=None, null=True, blank=True)
-    isActive = models.BooleanField(default=True)
-    isVerified = models.BooleanField(default=False)
-    updated = models.DateTimeField(auto_now=True)
-    created = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, verbose_name="آگهی‌دهنده"
+    )
+    city = models.ForeignKey(
+        City, on_delete=models.PROTECT, verbose_name="شهر"
+    )
+    category = models.ForeignKey(
+        Category, on_delete=models.PROTECT, verbose_name="دسته")
+    title = models.CharField(max_length=100, verbose_name="عنوان")
+    company = models.CharField(max_length=100, verbose_name="شرکت")
+    description = models.TextField(verbose_name="توضیحات")
+    isFullTime = models.BooleanField(default=False, verbose_name="تمام وقت")
+    isRemote = models.BooleanField(default=False, verbose_name="دورکاری")
+    isInternship = models.BooleanField(default=False, verbose_name="کارآموزی")
+    isMilitary = models.BooleanField(default=False, verbose_name="امریه")
+    salary = models.PositiveIntegerField(
+        default=None, null=True, blank=True, verbose_name="حقوق"
+    )
+    isActive = models.BooleanField(default=True, verbose_name="فعال")
+    isVerified = models.BooleanField(default=False, verbose_name="تایید مدیر")
+    updated = models.DateTimeField(
+        auto_now=True, verbose_name="تاریخ بروزرسانی"
+    )
+    created = models.DateTimeField(
+        auto_now_add=True, verbose_name="تاریخ ایجاد"
+    )
 
     class Meta:
         ordering = ['-id']
+        verbose_name = "آگهی"
+        verbose_name_plural = "آگهی‌ها"
 
     def __str__(self):
         return self.title
