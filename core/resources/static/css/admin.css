@@ -1,0 +1,12 @@
+@font-face {
+  font-family: Vazir;
+  src: url("/static/fonts/Vazir.eot");
+  src: url("/static/fonts/Vazir.eot?#iefix") format("embedded-opentype"),
+    url("/static/fonts/Vazir.woff") format("woff"),
+    url("/static/fonts/Vazir.ttf") format("truetype");
+  font-weight: normal;
+}
+
+* {
+  font-family: Vazir !important;
+}
