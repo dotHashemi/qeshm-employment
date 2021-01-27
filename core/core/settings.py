@@ -1,11 +1,21 @@
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-ENVIRONMENT = "DEV"
+# load .env file
+env_path = BASE_DIR / '.env'
+load_dotenv(dotenv_path=env_path)
+
+SECRET_KEY = os.getenv('SECRET_KEY')
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Application definition
 
@@ -37,6 +47,13 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
 
 ROOT_URLCONF = 'core.urls'
 
@@ -107,15 +124,3 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ]
 }
-
-
-# To check the environment and import data from their settings file
-try:
-    if ENVIRONMENT == "DEV":
-        from .settingsDev import *
-    elif ENVIRONMENT == "PRO":
-        from .settingsPro import *
-    else:
-        print("Error in Settings files.")
-except:
-    print("Error in Settings files.")
